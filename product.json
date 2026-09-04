@@ -1,8 +1,0 @@
-{
-  "sku": "SKU-002",
-  "name": "Ноутбук",
-  "description": "Мощный ноутбук",
-  "price": 79999.99,
-  "stockQuantity": 5,
-  "categoryId": 1
-}
