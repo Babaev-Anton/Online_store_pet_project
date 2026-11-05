@@ -66,7 +66,7 @@ public class ProductService {
         product.setStockQuantity(request.getStockQuantity());
         product.setCategory(category);
         product.setIsActive(true);
-        product.setVersion(0L);  // ← Явно устанавливаем версию
+        product.setVersion(0L);
 
         Product savedProduct = productRepository.save(product);
         return mapToResponse(savedProduct);

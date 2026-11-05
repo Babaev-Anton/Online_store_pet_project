@@ -8,7 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import org.springframework.security.core.AuthenticationException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,6 +84,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(CategoryHasProductsException.class)
+    public ResponseEntity<ApiError> handleCategoryHasProducts(
+            CategoryHasProductsException ex, HttpServletRequest request) {
+
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error("CATEGORY_HAS_PRODUCTS")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericException(
             Exception ex, HttpServletRequest request) {
@@ -99,5 +114,16 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(401)
+                .error("UNAUTHORIZED")
+                .message("Неверный email или пароль")
+                .path(request.getRequestURI())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 }
