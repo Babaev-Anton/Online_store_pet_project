@@ -32,11 +32,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Разрешаем всем без токена
-                        .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
-                        // Разрешаем всем GET-запросы к товарам и категориям
+                        .requestMatchers("/api/auth/**", "/actuator/health", "/api/payments/webhook").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
-                        // На остальные запросы (POST, PUT, DELETE) нужна аутентификация
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
