@@ -1,6 +1,7 @@
 package com.dp.onlinestore.service;
 
 import com.dp.onlinestore.dto.ProductCreateRequest;
+import com.dp.onlinestore.dto.ProductPatchRequest;
 import com.dp.onlinestore.dto.ProductResponse;
 import com.dp.onlinestore.dto.ProductUpdateRequest;
 import com.dp.onlinestore.entity.Category;
@@ -77,13 +78,13 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Товар с id " + id + " не найден"));
 
-        // Проверка версии (оптимистичная блокировка)
+        // Проверка версии
         if (!product.getVersion().equals(request.getVersion())) {
             throw new VersionConflictException(
                     "Товар был изменен другим пользователем. Пожалуйста, обновите данные и попробуйте снова.");
         }
 
-        // Проверка на дубликат SKU (если SKU изменился)
+        // Проверка на дубликат SKU
         if (!product.getSku().equals(request.getSku()) &&
                 productRepository.existsBySku(request.getSku())) {
             throw new DuplicateResourceException("Товар с SKU " + request.getSku() + " уже существует");
@@ -127,5 +128,21 @@ public class ProductService {
                 .isActive(product.getIsActive())
                 .createdAt(product.getCreatedAt())
                 .build();
+    }
+
+    public ProductResponse patchProduct(Long id, ProductPatchRequest request) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+
+        // Обновляем только не null поля
+        if (request.getPrice() != null) {
+            product.setPrice(request.getPrice());
+        }
+        if (request.getStockQuantity() != null) {
+            product.setStockQuantity(request.getStockQuantity());
+        }
+
+        Product updatedProduct = productRepository.save(product);
+        return mapToResponse(updatedProduct); // У тебя должен быть такой метод для маппинга
     }
 }

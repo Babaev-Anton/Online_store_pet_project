@@ -1,6 +1,7 @@
 package com.dp.onlinestore.controller;
 
 import com.dp.onlinestore.dto.ProductCreateRequest;
+import com.dp.onlinestore.dto.ProductPatchRequest;
 import com.dp.onlinestore.dto.ProductResponse;
 import com.dp.onlinestore.dto.ProductUpdateRequest;
 import com.dp.onlinestore.service.ProductService;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,6 +35,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> createProduct(
             @Valid @RequestBody ProductCreateRequest request) {
 
@@ -41,6 +44,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable Long id,
             @Valid @RequestBody ProductUpdateRequest request) {
@@ -49,8 +53,19 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductResponse> patchProduct(
+            @PathVariable Long id,
+            @RequestBody ProductPatchRequest request) {
+
+        ProductResponse response = productService.patchProduct(id, request);
+        return ResponseEntity.ok(response);
     }
 }
