@@ -3,12 +3,14 @@ package com.dp.onlinestore.service;
 import com.dp.onlinestore.dto.PaymentInitResponse;
 import com.dp.onlinestore.dto.YooKassaWebhookPayload;
 import com.dp.onlinestore.entity.*;
+import com.dp.onlinestore.event.OrderStatusChangedEvent;
 import com.dp.onlinestore.exception.ResourceNotFoundException;
 import com.dp.onlinestore.integration.PaymentClient;
 import com.dp.onlinestore.repository.OrderRepository;
 import com.dp.onlinestore.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final PaymentClient paymentClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public PaymentInitResponse initiatePayment(Long orderId, String userEmail) {
@@ -90,5 +93,12 @@ public class PaymentService {
 
         paymentRepository.save(payment);
         orderRepository.save(order);
+
+        // Публикуем событие о смене статуса заказа (PAID или FAILED)
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(
+                order.getId(),
+                order.getUser().getEmail(),
+                order.getStatus()
+        ));
     }
 }

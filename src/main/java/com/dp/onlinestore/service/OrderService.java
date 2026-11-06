@@ -3,6 +3,7 @@ package com.dp.onlinestore.service;
 import com.dp.onlinestore.dto.OrderItemResponse;
 import com.dp.onlinestore.dto.OrderResponse;
 import com.dp.onlinestore.entity.*;
+import com.dp.onlinestore.event.OrderStatusChangedEvent;
 import com.dp.onlinestore.exception.EmptyCartException;
 import com.dp.onlinestore.exception.InsufficientStockException;
 import com.dp.onlinestore.exception.ResourceNotFoundException;
@@ -10,6 +11,7 @@ import com.dp.onlinestore.repository.CartRepository;
 import com.dp.onlinestore.repository.OrderRepository;
 import com.dp.onlinestore.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public OrderResponse createOrderFromCart(String email) {
@@ -79,6 +82,13 @@ public class OrderService {
         // Очищаем корзину
         cart.getItems().clear();
         cartRepository.save(cart);
+
+        // Публикуем событие о создании заказа
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(
+                savedOrder.getId(),
+                savedOrder.getUser().getEmail(),
+                savedOrder.getStatus()
+        ));
 
         return mapToResponse(savedOrder);
     }
