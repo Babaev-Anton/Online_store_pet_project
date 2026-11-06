@@ -134,4 +134,24 @@ public class OrderService {
                 .items(items)
                 .build();
     }
+
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        // Ищем заказ (админ может менять любой заказ, поэтому без проверки email)
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Заказ с ID " + orderId + " не найден"));
+
+        // Меняем статус
+        order.setStatus(newStatus);
+        Order savedOrder = orderRepository.save(order);
+
+        // Публикуем событие для отправки email пользователю
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(
+                savedOrder.getId(),
+                savedOrder.getUser().getEmail(),
+                savedOrder.getStatus()
+        ));
+
+        return mapToResponse(savedOrder);
+    }
 }

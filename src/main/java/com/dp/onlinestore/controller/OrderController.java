@@ -1,7 +1,9 @@
 package com.dp.onlinestore.controller;
 
 import com.dp.onlinestore.dto.OrderResponse;
+import com.dp.onlinestore.dto.UpdateOrderStatusRequest;
 import com.dp.onlinestore.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,5 +40,15 @@ public class OrderController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         return ResponseEntity.ok(orderService.getOrderById(id, authentication.getName(), isAdmin));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponse> updateOrderStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateOrderStatusRequest request) {
+
+        OrderResponse response = orderService.updateOrderStatus(id, request.getStatus());
+        return ResponseEntity.ok(response);
     }
 }
